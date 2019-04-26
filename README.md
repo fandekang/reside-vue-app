@@ -1,8 +1,4 @@
-# element-wrapper-demo
-
-> A Demo For Element Wrapper
-
-## Build Setup
+# Build Setup
 
 ``` bash
 # install dependencies

@@ -1,19 +1,11 @@
 <template>
   <div class="main">
-    <mt-navbar class="nav-wrapper" v-model="selected">
-      <mt-tab-item id="form">申请表</mt-tab-item>
-      <mt-tab-item id="material">收件材料</mt-tab-item>
-    </mt-navbar>
+    <div class="nav-wrapper">
+      <router-link :to="writeApply" class="nav-item" active-class="activeClass">申请表</router-link>
+      <router-link :to="writeMaterial" class="nav-item" active-class="activeClass">收件材料</router-link>
+    </div>
 
-    <!-- tab-container -->
-    <mt-tab-container v-model="selected">
-      <mt-tab-container-item id="form">
-        <application-form></application-form>
-      </mt-tab-container-item>
-      <mt-tab-container-item id="material">
-        <receipt-material></receipt-material>
-      </mt-tab-container-item>
-    </mt-tab-container>
+    <router-view></router-view>
   </div>
 </template>
 <script>
@@ -27,16 +19,37 @@ export default {
   },
   data() {
     return {
-      swipeable: true,
-      isVisible: true,
-      selected: "form"
+      writeApply:
+        "/writeApply?actID=" +
+        this.$route.query.actID +
+        "&serialNO=" +
+        this.$route.query.serialNO,
+      writeMaterial:
+        "/writeMaterial?actID=" +
+        this.$route.query.actID +
+        "&serialNO=" +
+        this.$route.query.serialNO,
+      swipeable: true
     };
   },
-  methods: {
-    fullPopUpBackEvent() {
-      alert(1);
+  created() {
+  },
+  watch: {
+    $route(newVal) {
+      this.writeApply =
+        "/writeApply?actID=" +
+        newVal.query.actID +
+        "&serialNO=" +
+        newVal.query.serialNO;
+
+      this.writeMaterial =
+        "/writeMaterial?actID=" +
+        newVal.query.actID +
+        "&serialNO=" +
+        newVal.query.serialNO;
     }
-  }
+  },
+  methods: {}
 };
 </script>
 <style lang="scss" scoped>
@@ -44,15 +57,21 @@ export default {
   margin-top: 5em;
   padding: 2.5em;
   .nav-wrapper {
+    display: flex;
     margin: 0 auto;
-    width: 45%;
+    width: 50%;
     box-shadow: 3px 3px 3px rgba(226, 226, 226, 1);
-    .mint-tab-item {
-      padding: 8px 0;
+    .nav-item {
+      display: inline-block;
+      flex: 1;
+      height: 30px;
+      line-height: 30px;
+      text-align: center;
       background-color: rgba(242, 242, 242, 1);
-      border: none;
+      text-decoration: none;
+      color: #333;
     }
-    .is-selected {
+    .activeClass {
       background-color: rgba(153, 51, 204, 1);
       color: #fff;
     }

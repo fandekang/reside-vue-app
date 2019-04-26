@@ -12,13 +12,12 @@ export default {
     title: String
   },
   data() {
-    return {
-    };
+    return {};
   },
   methods: {
-      back() {
-          this.$emit('back')
-      }
+    back() {
+      this.$emit("back");
+    }
   }
 };
 </script>
@@ -27,8 +26,6 @@ export default {
   position: relative;
   height: 60px;
   line-height: 60px;
-  font-size: 2em;
-  font-weight: 700;
   background: rgba(242, 242, 242, 1);
   border-bottom: 1px solid rgba(226, 226, 226, 1);
   .back {
@@ -41,13 +38,16 @@ export default {
     padding: 0 10px;
     height: 100%;
     i {
-      font-size: 3.33em;
+      font-size: 35px;
+      font-weight: 500;
     }
   }
   .title {
     width: 100%;
     height: 100%;
     text-align: center;
+    font-size: 20px;
+    font-weight: 700;
   }
 }
 </style>

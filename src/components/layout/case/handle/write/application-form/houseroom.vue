@@ -1,7 +1,6 @@
 <template>
   <div class="step">
     <header class="header">
-      <button class="add" @click="add">添加</button>
       <span class="search">
         <input type="text" class="input" ref="inp" v-model="searchVal" placeholder="请输入姓名或身份证号">
         <button class="btn" @click="search">搜索</button>
@@ -9,26 +8,11 @@
     </header>
 
     <div class="main">
-      <div class="info-list" v-if="isAdd">
-        <div
-          class="info"
-          :class="index1 == index ? 'active' : ''"
-          v-for="(item, index) in infoList"
-          :key="index"
-          @click="selectInfo(index, item)"
-        >
-          <div class="name">坐落 : {{item.house_location}}</div>
-          <div class="age">面积（平方米） : {{item.house_area}}</div>
-          <div class="sex">房屋类型 : {{item.house_type}}</div>
-          <div class="cardID">房产证号 : {{item.house_card_num}}</div>
-        </div>
-      </div>
       <load-more-cell
-        v-else-if="url"
+        v-if="url"
         ref="loadMore"
         class="info-list"
         :data-url="url"
-        :data-json="infoList"
         :pager="pager"
         :remote-param="remoteParam"
         :auto-fill="false"
@@ -39,7 +23,6 @@
         <template slot-scope="scope">
           <div
             class="info"
-            :class="index1 == index ? 'active' : ''"
             v-for="(item, index) in scope.source"
             :key="index"
             @click="selectInfo(index, item)"
@@ -58,12 +41,8 @@
 export default {
   data() {
     return {
-      index1: null, // 要添加的索引
       searchVal: "",
-      infoList: null,
-      selectList: [],
-      isAdd: false,
-      url: '',
+      url: "",
       pager: {
         curPage: 1,
         pageSize: 2
@@ -72,28 +51,17 @@ export default {
       allLoaded: false
     };
   },
-  created() {
-    let createCaseData = this.$store.state.createCase.createCaseData
-    if (createCaseData.room) {
-      this.selectList = createCaseData.room;
-      this.infoList = this.selectList;
-      this.isAdd = true;
-    }
-  },
   mounted() {
     this.$refs.inp.focus();
-  },
-  computed: {
   },
   methods: {
     loadTop() {
       // alert("下拉");
+      this.pager.curPage = 1
       this.$refs.loadMore.onTopLoaded();
     },
     loadBottom() {
       // alert("上啦");
-      this.url =
-        process.env.ROOT_API + "guide/getHouseInfo?dt=" + Math.random();
       this.$refs.loadMore.onBottomLoaded();
     },
     search() {
@@ -102,14 +70,10 @@ export default {
         selectInfo.searchVal = this.searchVal;
         selectInfo = JSON.stringify(selectInfo);
 
-        this.url = process.env.ROOT_API + "guide/getHouseInfo";
+        this.url =
+          process.env.ROOT_API + "guide/getHouseInfo?dt=" + Math.random();
         this.pager.curPage = 1;
         this.remoteParam.selectInfo = selectInfo;
-
-        this.index1 = null;
-        this.isAdd = false;
-        this.selectList = [];
-        this.infoList = null;
       } else {
         this.$toast({
           message: "请输入要查询的值",
@@ -118,67 +82,11 @@ export default {
       }
     },
     selectInfo(i, item) {
-      let list = [];
-      list.push(item);
-      this.selectList = list;
-      this.index1 = i;
-    },
-    add() {
-      if (this.selectList.length) {
-        if (this.isAdd) {
-          this.$toast("已选择了数据， 请重新查询并选择");
-        } else {
-          this.index1 = null;
-          this.infoList = this.selectList;
-          this.isAdd = true;
-        }
-      } else {
-        this.$toast("未选择一条信息");
-      }
-    },
-    next() {
-      let str = "";
+      //   console.log(item);
+      this.$emit("select", item);
 
-      if (this.isAdd) {
-        if (this.selectList.length) {
-          let houseID = this.selectList[0].house_id;
-          let request = new XMLHttpRequest();
-          request.open(
-            "POST",
-            process.env.ROOT_API + "guide/judgeHouseApprove",
-            false
-          ); // 第三个参数 false 代表设置同步请求
-          request.setRequestHeader("Accept", "application/json");
-          request.setRequestHeader(
-            "Content-Type",
-            "application/x-www-form-urlencoded"
-          );
-          request.send(`houseID=${houseID}`);
-
-          if (request.status === 200) {
-            let res = JSON.parse(request.response);
-            if (res.success) {
-              let obj = this.$store.state.createCase.createCaseData;
-              obj.room = this.infoList;
-              str = JSON.stringify(obj)
-
-              this.isAdd = false;
-              this.selectList = [];
-              this.infoList = null;
-            } else {
-              str = res.errorMsg;
-            }
-          } else {
-            str = "数据验证未通过";
-          }
-        } else {
-          str = "未选择";
-        }
-      } else {
-        str = "未添加";
-      }
-
-      return str;
+      //   this.$store.commit('changeApplyerSelectData', {applyerSelectData: item})
+      //     this.$store.commit('toggleApplySelected', {applyerSelectData: true})
     }
   }
 };
@@ -186,9 +94,10 @@ export default {
 
 <style lang="scss" scoped>
 .step {
+  padding: 0 20px;
+  margin-top: 70px;
   .header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     height: 30px;
     line-height: 30px;

@@ -22,7 +22,7 @@
             <div class="landlord">房东 : {{item.appMan2}}</div>
             <div class="date">申请时间 : {{formatDate(item.procInsCreated)}}</div>
             <div class="operate">
-              <button class="btn">接收</button>
+              <button class="btn" @click="receive(item)">接收</button>
             </div>
           </div>
         </template>
@@ -54,6 +54,7 @@ export default {
     },
     loadTop() {
       // alert('下啦')
+      this.pager.curPage = 1;
       this.$refs.loadMore.onTopLoaded();
     },
     loadBottom() {
@@ -64,13 +65,55 @@ export default {
     formatDate(date) {
       let arr = date.split("-");
       return arr[0] + "年" + arr[1] + "月" + arr[2] + "日";
+    },
+    receive(item) {
+      let arr = [
+        {
+          procID: item.procID,
+          type: "AcceptTask",
+          taskID: item.taskID,
+          actID: item.actID,
+          procInstanceID: item.procInstanceID
+        }
+      ];
+
+      this.$http
+        .post(
+          process.env.ROOT_API + "task/changeTask",
+          { taskListString: JSON.stringify(arr) },
+          { emulateJSON: true }
+        )
+        .then(
+          res => {
+            res = JSON.parse(res.bodyText);
+            if (res.success) {
+              this.$toast("接收成功");
+              this.dataUrl =
+                process.env.ROOT_API +
+                "task/getTaskList?actType=5&random=" +
+                Math.random();
+            } else {
+              this.$toast("接收失败");
+            }
+          },
+          err => {
+            this.$toast("接收失败");
+            throw new Error(err);
+          }
+        );
     }
   }
 };
 </script>
 <style lang="scss" scoped>
 .loadmore-wrapper {
-  padding: 30px 25px;
+  position: fixed;
+  top: 70px;
+  bottom: 70px;
+  padding: 0 25px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: scroll;
   .cell {
     position: relative;
     padding: 15px;

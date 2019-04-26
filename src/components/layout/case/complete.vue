@@ -37,7 +37,8 @@ export default {
   data() {
     return {
       title: "已完成任务列表",
-      dataUrl: process.env.ROOT_API + "task/getTaskList?actType=5",
+      dataUrl: '',
+      // dataUrl: process.env.ROOT_API + "task/getTaskList?actType=5",
       pager: {
         curPage: 1,
         pageSize: 2

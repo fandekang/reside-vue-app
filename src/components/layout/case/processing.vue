@@ -2,13 +2,19 @@
   <div>
     <!-- 增加/修改收件材料框 -->
     <full-popup
-      class="material-dialog"
+      class="material-full-popup"
       v-model="materialDialogVisible"
       :title="materialDialogTitle"
       @back="materialDialogBackEvent"
     >
       <material-dialog v-if="materialDialogVisible"></material-dialog>
     </full-popup>
+
+    <!-- 转件 -->
+    <mt-popup class="skipDialog" v-model="skipDialogVisible" position="bottom">
+      <mt-picker :slots="slots" valueKey="staffName" @change="onValuesChange"></mt-picker>
+      <div class="conform" @click="conform">确定</div>
+    </mt-popup>
 
     <!-- 办理框 -->
     <full-popup
@@ -20,60 +26,77 @@
       <router-view v-if="dialogVisible"></router-view>
     </full-popup>
 
-    <div>
-      <header-wrapper :title="title" @back="back"></header-wrapper>
-      <div class="loadmore-wrapper">
-        <load-more-cell
-          ref="loadMore"
-          :pager="pager"
-          :dataUrl="dataUrl"
-          :auto-fill="false"
-          :top-method="loadTop"
-          :bottom-method="loadBottom"
-          :bottom-all-loaded.sync="allLoaded"
-        >
-          <template slot-scope="scope">
-            <div class="cell" v-for="(item, index) in scope.source" :key="index">
-              <div class="status-triangle type1" v-if="item.actID == 7 || item.actID == 19"></div>
-              <div class="status-triangle type2" v-else-if="item.actID == 8 || item.actID == 21"></div>
-              <div class="status" v-if="item.actID == 7 || item.actID == 19">正</div>
-              <div class="status" v-else-if="item.actID == 8 || item.actID == 21">缮</div>
-              <div class="serialNO">案件编号 : {{item.serialNO}}</div>
-              <div class="type">案件类型 : {{item.processName}}</div>
-              <div class="proposer">申请人 : {{item.appMan}}</div>
-              <div class="landlord">房东 : {{item.appMan2}}</div>
-              <div class="date">申请时间 : {{formatDate(item.procInsCreated)}}</div>
-              <div class="operate">
-                <button class="btn handle" @click="handleCase(item.actID, item.serialNO)">办理</button>
-                <button class="btn">转件</button>
-              </div>
+    <header-wrapper :title="title" @back="back"></header-wrapper>
+    <div class="loadmore-wrapper">
+      <load-more-cell
+        ref="loadMore"
+        :pager="pager"
+        :dataUrl="dataUrl"
+        :auto-fill="false"
+        :top-method="loadTop"
+        :bottom-method="loadBottom"
+        :bottom-all-loaded.sync="allLoaded"
+      >
+        <template slot-scope="scope">
+          <div class="cell" v-for="(item, index) in scope.source" :key="index">
+            <div class="status-triangle type1" v-if="item.taskStatus == 1"></div>
+            <div class="status-triangle type2" v-else></div>
+            <div class="status" v-if="item.taskStatus == 1">正</div>
+            <div class="status" v-else>退</div>
+            <div class="serialNO">案件编号 : {{item.serialNO}}</div>
+            <div class="type">案件类型 : {{item.processName}}</div>
+            <div class="proposer">申请人 : {{item.appMan}}</div>
+            <div class="landlord">房东 : {{item.appMan2}}</div>
+            <div class="date">申请时间 : {{formatDate(item.procInsCreated)}}</div>
+            <div class="operate" v-if="item.actID == 7 || item.actID == 19">
+              <button class="btn handle" @click="handleCase(item.actID, item.serialNO)">办理</button>
+              <button class="btn" @click="skipCase(item)">转件</button>
             </div>
-          </template>
-        </load-more-cell>
-      </div>
+            <div class="operate" v-else>
+              <button class="btn handle" @click="handleCase(item.actID, item.serialNO)">办理</button>
+              <button class="btn" @click="backCase(item)">退件</button>
+            </div>
+          </div>
+        </template>
+      </load-more-cell>
     </div>
   </div>
 </template>
 <script>
 import headerWrapper from "@/components/layout/header-back";
-import materialDialog from '@/components/layout/case/handle/write/material/add-edit-material'
+import materialDialog from "@/components/layout/case/handle/write/material/add-edit-material";
+import applyer from "@/components/layout/case/handle/write/application-form/applyer";
 
 export default {
   components: {
     headerWrapper,
-    materialDialog
+    materialDialog,
+    applyer
   },
   data() {
     return {
       dialogTitle: "",
       dialogVisible: false,
       title: "办理中任务",
-      dataUrl: process.env.ROOT_API + "task/getTaskList?actType=2",
+      // dataUrl: process.env.ROOT_API + "task/getTaskList?actType=2",
       pager: {
         curPage: 1,
         pageSize: 2
       },
-      allLoaded: false
+      allLoaded: false,
+      skipDialogVisible: false,
+      selectStaff: null,
+      selectItem: null,
+      slots: [
+        {
+          values: [
+            {
+              staffName: "转到待接收列表",
+              staffID: ""
+            }
+          ]
+        }
+      ]
     };
   },
   methods: {
@@ -82,6 +105,7 @@ export default {
     },
     loadTop() {
       // alert('下啦')
+      this.pager.curPage = 1;
       this.$refs.loadMore.onTopLoaded();
     },
     loadBottom() {
@@ -99,6 +123,7 @@ export default {
       this.dialogTitle = serialNO + " 居住证办理";
       // alert(this.dialogVisible);
       if (actID == 7 || actID == 19) {
+        // alert('正在办理')
         this.$router.push({
           path: "/handleWrite",
           query: {
@@ -122,11 +147,118 @@ export default {
       // this.$router.back();
       this.dialogVisible = false;
     },
+    // 收件材料编辑框返回事件
     materialDialogBackEvent() {
-      this.$store.commit("toggleMaterialDialogVisible", {
-        materialDialogVisible: false
-      });
-    }
+      this.materialDialogVisible = false;
+    },
+    // 转件
+    skipCase(item) {
+      this.skipDialogVisible = true;
+      this.selectItem = item;
+      let param = {
+        random: Math.random(),
+        actID: item.actID,
+        serialNO: item.serialNO
+      };
+      this.$http
+        .post(process.env.ROOT_API + "task/getAllStaff", param, {
+          emulateJSON: true
+        })
+        .then(
+          res => {
+            res = JSON.parse(res.bodyText);
+            if (res.data) {
+              this.slots[0].values = this.slots[0].values.concat(res.data);
+            }
+          },
+          err => {
+            throw new Error(err);
+          }
+        );
+    },
+    // 选择框picker 发生改变是触发
+    onValuesChange(picker, values) {
+      // console.log(values);
+      this.selectStaff = values[0];
+    },
+    // 转件框选择确认
+    conform() {
+      let arr = [
+        {
+          procID: this.selectItem.procID,
+          nextStaffID: this.selectStaff.staffID,
+          type: "SendTask",
+          taskID: this.selectItem.taskID,
+          actID: this.selectItem.actID,
+          procInstanceID: this.selectItem.procInstanceID
+        }
+      ];
+
+      // console.log(arr);
+
+      this.$http
+        .post(
+          process.env.ROOT_API + "task/changeTask",
+          { taskListString: JSON.stringify(arr) },
+          { emulateJSON: true }
+        )
+        .then(
+          res => {
+            res = JSON.parse(res.bodyText);
+            if (res.success) {
+              this.$toast("转件成功");
+              this.dataUrl =
+                process.env.ROOT_API +
+                "task/getTaskList?actType=2&dt" +
+                Math.random();
+              this.pager.curPage = 1;
+              this.skipDialogVisible = false;
+            } else {
+              this.$toast("转件失败");
+            }
+          },
+          err => {
+            this.$toast("转件失败");
+            throw new Error(err);
+          }
+        );
+    },
+    // 退件
+    backCase(item) {
+      let arr = [
+        {
+          procID: item.procID,
+          type: "BackTask",
+          taskID: item.taskID,
+          procInstanceID: item.procInstanceID
+        }
+      ];
+
+      this.$http
+        .post(
+          process.env.ROOT_API + "task/changeTask",
+          { taskListString: JSON.stringify(arr) },
+          { emulateJSON: true }
+        )
+        .then(
+          res => {
+            res = JSON.parse(res.bodyText);
+            if (res.success) {
+              this.$toast("退件成功");
+              this.dataUrl =
+                process.env.ROOT_API +
+                "task/getTaskList?actType=2&dt" +
+                Math.random();
+            } else {
+              this.$toast("退件失败");
+            }
+          },
+          err => {
+            this.$toast("退件失败");
+            throw new Error(err);
+          }
+        );
+    },
   },
   computed: {
     materialDialogVisible: {
@@ -148,13 +280,16 @@ export default {
           materialDialogTitle: val
         });
       }
+    },
+    dataUrl() {
+      return this.$store.state.taskProcessing.processingURL
     }
   }
 };
 </script>
 <style>
 .handle-case-dialog .sy-full-popup-title,
-.material-dialog .sy-full-popup-title {
+.material-full-popup .sy-full-popup-title {
   height: 60px !important;
   background: rgba(242, 242, 242, 1) !important;
   color: #333;
@@ -163,32 +298,49 @@ export default {
 }
 
 .handle-case-dialog .sy-full-popup-title .mint-header-title,
-.material-dialog .mint-header-title {
+.material-full-popup .mint-header-title {
   font-weight: 700;
 }
 .handle-case-dialog .sy-full-popup-title .mintui-back,
-.material-dialog .sy-full-popup-title .mintui-back {
+.material-full-popup .sy-full-popup-title .mintui-back {
   font-size: 2em;
 }
-/* .material-dialog {
-  z-index: 2001;
-} */
+
+.skipDialog {
+  width: 100%;
+  z-index: 3001 !important;
+}
+.skipDialog .conform {
+  height: 35px;
+  width: 100%;
+  text-align: center;
+  line-height: 35px;
+  font-size: 1.5em;
+  background: rgba(153, 51, 204, 1);
+  color: #fff;
+}
 </style>
 
 <style lang="scss" scoped>
 .loadmore-wrapper {
-  padding: 30px 25px;
+  position: fixed;
+  top: 70px;
+  bottom: 70px;
+  padding: 0 25px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: scroll;
   .cell {
     position: relative;
     padding: 1.25em;
-    margin-bottom: 60px;
+    margin-bottom: 30px;
     font-size: 1.2em;
     background: rgba(242, 242, 242, 1);
     color: #333;
     .status {
       position: absolute;
       top: 4px;
-      right: 5px;
+      right: 10px;
       font-size: 1.5em;
       font-weight: 650;
       color: #fff;

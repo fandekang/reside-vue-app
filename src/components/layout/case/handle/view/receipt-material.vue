@@ -2,7 +2,7 @@
   <div>
     <div class="material-wrapper">
       <div class="add-material">
-        <button class="btn" @click="add">添加材料</button>
+        <!-- <button class="btn" @click="add">添加材料</button> -->
       </div>
       <div class="materials">
         <load-more-cell
@@ -83,7 +83,6 @@ export default {
       this.$store.commit("changeMaterialDialogTitle", {
         materialDialogTitle: "添加收件材料"
       });
-      this.materialEdit = false
     },
     del(id) {
       // alert(id);

@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <mt-popup class="create-case-step" v-model="popupVisible" :modal="false" popup-transition="popup-fade" position="bottom">
-      <create-case-step></create-case-step>
+      <create-case-step v-if="popupVisible"></create-case-step>
     </mt-popup>
     <div class="list-wrapper" v-if="authList.length">
       <template v-for="(item, index) in authList">

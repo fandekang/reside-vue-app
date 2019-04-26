@@ -17,7 +17,7 @@
   </div>
 </template>
 <script>
-// import {Toast} from 'mint-ui'
+
 export default {
   data() {
     return {
@@ -28,12 +28,11 @@ export default {
   methods: {
     login() {
       this.$http
-        .get(
+        .post(
           process.env.ROOT_API +
-            "login/authentication?loginname=" +
-            this.username +
-            "&password=" +
-            this.password
+            "login/authentication",
+            {loginname: this.username, password: this.password},
+            {emulateJSON: true}
         )
         .then(
           res => {

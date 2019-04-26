@@ -10,7 +10,7 @@
     </div>
 
     <div class="steps-container">
-      <router-view @selectedData="selectedData"></router-view>
+      <router-view ref="step"></router-view>
     </div>
 
     <div class="btns-wrapper">
@@ -29,6 +29,24 @@ export default {
       selRow: null
     };
   },
+  created() {
+    // console.log(this.$route)
+    // console.log(this.$router)
+    // this.$router.replace({path: this.createCaseData.pathArr[this.stepIndex]})
+    // this.$router.push(this.createCaseData.pathArr[this.stepIndex]);
+  },
+  computed: {
+    createCaseData: {
+      get() {
+        return this.$store.state.createCase.createCaseData;
+      },
+      set(val) {
+        this.$store.commit("changeCreateCaseData", {
+          createCaseData: val
+        });
+      }
+    }
+  },
   methods: {
     prev() {
       if (this.stepIndex) {
@@ -36,6 +54,7 @@ export default {
         this.$refs.next.className = "btn";
         this.$refs.finish.className = "btn hidden";
         this.stepIndex--;
+        this.$router.push(this.createCaseData.pathArr[this.stepIndex]);
       }
       if (this.stepIndex == 0) {
         this.$refs.prev.className = "btn disabled";
@@ -43,21 +62,27 @@ export default {
       }
     },
     next() {
-      if (this.selRow.person_id) {
-          
-      }
-      if (this.stepIndex < 3) {
-        this.$refs.prev.className = "btn";
-        this.stepIndex++;
-      }
-      if (this.stepIndex == 3) {
-        this.$refs.next.className = "btn hidden";
-        this.$refs.finish.className = "btn";
+      let str = this.$refs.step.next();
+      // console.log(str);
+      if (str.indexOf("{") < 0 && str.indexOf("[") < 0) {
+        this.$toast(str);
+      } else {
+        this.$store.commit("changeCreateCaseData", {
+          createCaseData: JSON.parse(str)
+        });
+        if (this.stepIndex < 3) {
+          this.$refs.prev.className = "btn";
+          this.stepIndex++;
+          this.$router.push(this.createCaseData.pathArr[this.stepIndex]);
+        }
+        if (this.stepIndex == 3) {
+          this.$refs.next.className = "btn hidden";
+          this.$refs.finish.className = "btn";
+        }
       }
     },
-    finish() {},
-    selectedData(obj) {
-      this.selRow = obj;
+    finish() {
+      this.$refs.step.finish();
     }
   }
 };

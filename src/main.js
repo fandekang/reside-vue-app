@@ -12,6 +12,7 @@ import 'font-awesome/css/font-awesome.css';
 import login from '@/assets/js/store/login';
 import main from '@/assets/js/store/main';
 import createCase from '@/assets/js/store/createCase';
+import taskProcessing from '@/assets/js/store/taskProcessing'
 
 Vue.config.productionTip = false;
 Vue.use(MintUI);
@@ -23,7 +24,8 @@ const store = new Vuex.Store({
   modules: {
     login,
     main,
-    createCase
+    createCase,
+    taskProcessing
   }
 })
 

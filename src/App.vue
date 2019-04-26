@@ -9,11 +9,11 @@
     <main-wrapper v-if="!loginVisible" class="main-wrapper" v-model="active"></main-wrapper>
 
     <!-- 弹出框 -->
-    <full-popup v-model="fullPopUpVisible" :title="'阅读文章'" @back="fullPopUpBackEvent">
+    <!-- <full-popup v-model="fullPopUpVisible" :title="'阅读文章'" @back="fullPopUpBackEvent">
       <router-view v-if="fullPopUpVisible"></router-view>
-    </full-popup>
+    </full-popup>-->
 
-    <!-- 底部选项卡 -->
+    <!-- 底部导航栏 -->
     <foot-wrapper class="footer-wrapper" v-model="active" :source="source"></foot-wrapper>
   </div>
 </template>
@@ -38,7 +38,7 @@ export default {
     };
   },
   created() {
-    this.$router.push('/')
+    this.$router.push("/");
     this.isLogin();
   },
   mounted() {
@@ -170,6 +170,15 @@ li {
 
 .sy-footer-item.active {
   background-color: #8351d0 !important;
+}
+
+.mint-header {
+  height: 60px;
+  font-size: 2em;
+  font-weight: 700;
+  background: #f2f2f2;
+  color: #000;
+  border-bottom: 1px solid #e2e2e2;
 }
 
 .mint-header-title {

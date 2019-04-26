@@ -1,5 +1,7 @@
 <template>
   <div>
+    <!-- 动态查询筛选框 -->
+    <mt-popup class="dynamic-dialog" v-model="dynamicDialogVisible"></mt-popup>
     <!-- 顶部导航列表 -->
     <full-popup
       class="material-dialog"
@@ -22,6 +24,7 @@
       </div>
       <div class="loadmore-wrapper">
         <load-more-cell
+          v-if="dataUrl"
           ref="loadMore"
           :pager="pager"
           :dataUrl="dataUrl"
@@ -63,8 +66,20 @@ export default {
       tabBars: [],
       topMenuDialogVisible: false,
       topMenuDialogTitle: '',
-    
+      dynamicDialogVisible: false
     };
+  },
+  computed: {
+    topMenuPopVisible() {
+      return this.$store.state.main.topMenuPopVisible
+    }
+  },
+  watch: {
+    topMenuPopVisible(val) {
+      if (val) {
+        this.topMenuDialogBackEvent()
+      }
+    }
   },
   methods: {
     // 格式化日期
@@ -76,22 +91,26 @@ export default {
       this.$store.commit("toggleLoginVisible", { loginVisible: true });
     },
     loadTop() {
+      this.pager.curPage = 1
       this.$refs.loadMore.onTopLoaded();
     },
     loadBottom() {
       this.$refs.loadMore.onBottomLoaded();
     },
+    // 进入顶部导航栏弹出框
     toMenuDialog(path, text) {
        this.topMenuDialogVisible = true
        this.topMenuDialogTitle = text
        this.$router.push(path)
     },
+    // 顶部导航栏弹出框的返回事件
     topMenuDialogBackEvent() {
       this.topMenuDialogVisible = false
+      this.dataUrl = process.env.ROOT_API + "task/getTaskList?actType=2&dt=" + Math.random()
+      this.$router.push('/')
     }
   },
   created() {
-    // this.dataUrl = process.env.ROOT_API + "task/getTaskList?actType=2" + '&dt=' + Math.random()
     this.$http.get(process.env.ROOT_API + "menu/getCellphoneTopMenu").then(
       res => {
         res = JSON.parse(res.bodyText);
@@ -105,10 +124,10 @@ export default {
         }
       },
       err => {
-        this.$toast({
-          message: "请求顶部菜单列表失败",
-          iconClass: "fa fa-exclamation"
-        });
+        // this.$toast({
+        //   message: "请求顶部菜单列表失败",
+        //   iconClass: "fa fa-exclamation"
+        // });
         throw new Error(err);
       }
     );
@@ -150,6 +169,11 @@ export default {
     }
   }
   .loadmore-wrapper {
+    position: fixed;
+    top: 120px;
+    bottom: 70px;
+    width: 100%;
+    overflow: scroll;
     .cell {
       padding: 10px 20px;
       font-weight: 650;
@@ -165,7 +189,7 @@ export default {
       .down {
         display: flex;
         justify-content: space-between;
-        font-size: 1em;
+        font-size: 0.83em;
         color: #999;
       }
     }

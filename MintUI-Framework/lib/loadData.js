@@ -7,10 +7,14 @@ export default {
     },
     watch: {
         'pager.curPage'() {
+            // console.log('pager change')
             this.loadData(false);
         },
         dataUrl() {
             // this.loadData(false);
+            this.loadData(true);
+        },
+        dataJson() {
             this.loadData(true);
         }
     },
@@ -18,7 +22,7 @@ export default {
         sliceArray(array) {
             let curPage = this.pager.curPage,
                 pageSize = this.pager.pageSize;
-            array.slice((curPage - 1) * pageSize, curPage * pageSize)
+            return array.slice((curPage - 1) * pageSize, curPage * pageSize)
         },
         bottomEvent() {
             this.pager.curPage++;
@@ -30,6 +34,7 @@ export default {
         },
         loadData(reload) {
             if (this.dataJson) {
+                // alert('json')
                 if (reload) {
                     this.source = this.sliceArray(this.dataJson);
                 }
@@ -39,6 +44,7 @@ export default {
                 this.$set(this.pager, 'total', this.dataJson.length);
             }
             else {
+                // alert('url')
                 Vue.use(resource);
                 let url = this.dataUrl;
                 let remoteParam = {}
@@ -105,7 +111,7 @@ export default {
                         this.$store.commit("toggleUser", {title: "登陆"});
                     }
                     else {
-                        toast('调取远程数据失败，状态：' + response.status)
+                        // toast('调取远程数据失败，状态：' + response.status)
                     }
                     // this.$message.error("调取远程数据失败: " + JSON.stringify(response));
                 })
