@@ -1,5 +1,19 @@
 <template>
-  <div>
+  <div class="home-container">
+    <!-- 由于popup的modal 会与 picker的modal冲突， 所以自定义一个modal -->
+    <div class="modal-wrapper" v-show="screeningVisible" @click="closeModal"></div>
+
+    <!-- 设置查询条件框 -->
+    <mt-popup
+      class="dynamic-screening-wrapper"
+      v-model="screeningVisible"
+      :modal="false"
+      position="right"
+    >
+      <div v-if="screeningVisible">
+        <query-condition></query-condition>
+      </div>
+    </mt-popup>
     <!-- 动态查询筛选框 -->
     <mt-popup class="dynamic-dialog" v-model="dynamicDialogVisible"></mt-popup>
     <!-- 顶部导航列表 -->
@@ -53,7 +67,12 @@
 </template>
 <script>
 import logoImg from "@/assets/images/logo.png";
+import queryCondition from "@/components/layout/case/dynamic-query/query-condition";
+
 export default {
+  components: {
+    queryCondition
+  },
   data() {
     return {
       logoImg,
@@ -65,19 +84,27 @@ export default {
       allLoaded: false,
       tabBars: [],
       topMenuDialogVisible: false,
-      topMenuDialogTitle: '',
+      topMenuDialogTitle: "",
       dynamicDialogVisible: false
     };
   },
   computed: {
     topMenuPopVisible() {
-      return this.$store.state.main.topMenuPopVisible
+      return this.$store.state.main.topMenuPopVisible;
+    },
+    screeningVisible: {
+      get() {
+        return this.$store.state.dynamicQuery.screeningVisible;
+      },
+      set(val) {
+        this.$store.commit("toggleScreeningVisible", { screeningVisible: val });
+      }
     }
   },
   watch: {
     topMenuPopVisible(val) {
       if (val) {
-        this.topMenuDialogBackEvent()
+        this.topMenuDialogBackEvent();
       }
     }
   },
@@ -91,7 +118,7 @@ export default {
       this.$store.commit("toggleLoginVisible", { loginVisible: true });
     },
     loadTop() {
-      this.pager.curPage = 1
+      this.pager.curPage = 1;
       this.$refs.loadMore.onTopLoaded();
     },
     loadBottom() {
@@ -99,15 +126,20 @@ export default {
     },
     // 进入顶部导航栏弹出框
     toMenuDialog(path, text) {
-       this.topMenuDialogVisible = true
-       this.topMenuDialogTitle = text
-       this.$router.push(path)
+      this.topMenuDialogVisible = true;
+      this.topMenuDialogTitle = text;
+      this.$router.push(path);
     },
     // 顶部导航栏弹出框的返回事件
     topMenuDialogBackEvent() {
-      this.topMenuDialogVisible = false
-      this.dataUrl = process.env.ROOT_API + "task/getTaskList?actType=2&dt=" + Math.random()
-      this.$router.push('/')
+      this.topMenuDialogVisible = false;
+      this.dataUrl =
+        process.env.ROOT_API + "task/getTaskList?actType=2&dt=" + Math.random();
+      this.$router.push("/");
+    },
+    // 关闭自定义的modal
+    closeModal() {
+      this.screeningVisible = false;
     }
   },
   created() {
@@ -134,6 +166,31 @@ export default {
   }
 };
 </script>
+<style>
+/* .home-container .v-modal {
+  display: none;
+} */
+</style>
+
+<style scoped>
+.dynamic-screening-wrapper {
+  width: 80%;
+  height: 100%;
+  z-index: 5002 !important;
+}
+
+.modal-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.5;
+  background: #000;
+  z-index: 5001;
+}
+</style>
+
 <style lang="scss" scoped>
 .main {
   background: rgba(255, 255, 255, 1);

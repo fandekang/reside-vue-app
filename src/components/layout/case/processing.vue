@@ -308,7 +308,7 @@ export default {
 
 .skipDialog {
   width: 100%;
-  z-index: 3001 !important;
+  z-index: 6000 !important;
 }
 .skipDialog .conform {
   height: 35px;

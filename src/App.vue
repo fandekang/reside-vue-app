@@ -172,6 +172,10 @@ li {
   background-color: #8351d0 !important;
 }
 
+.sy-full-popup-title.mint-header.is-fixed {
+  z-index: 5000 !important;
+}
+
 .mint-header {
   height: 60px;
   font-size: 2em;
@@ -201,7 +205,7 @@ li {
     font-size: 1em !important;
     background: rgb(228, 228, 228) !important;
     color: #333 !important;
-    z-index: 3000;
+    z-index: 5000;
   }
 }
 </style>
